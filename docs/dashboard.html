@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agente Tributário — Development Dashboard Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 28px;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .header-left p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .time-display {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .time-label {
+            font-size: 12px;
+            color: #999;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .icon {
+            font-size: 24px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 12px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .progress-text {
+            font-size: 12px;
+            color: #999;
+            text-align: right;
+            margin-top: 4px;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: blink 2s infinite;
+        }
+
+        .status-active {
+            background: #10b981;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+            animation: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .team-member {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .team-task {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .task-list {
+            list-style: none;
+        }
+
+        .task-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .task-list li:last-child {
+            border-bottom: none;
+        }
+
+        .checkbox {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            flex-shrink: 0;
+        }
+
+        .checkbox.done {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            background: #667eea;
+            border-radius: 50%;
+            position: relative;
+            z-index: 2;
+            margin-top: 4px;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.done {
+            background: #10b981;
+        }
+
+        .timeline-content {
+            flex-grow: 1;
+        }
+
+        .timeline-date {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .timeline-text {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .kpi {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .kpi-value {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .kpi-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .risk-item {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        .risk-title {
+            font-weight: 600;
+            color: #b45309;
+            margin-bottom: 4px;
+        }
+
+        .risk-description {
+            color: #92400e;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            font-size: 12px;
+        }
+
+        .refresh-button {
+            background: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .refresh-button:hover {
+            background: #f0f0f0;
+        }
+
+        .refresh-button:active {
+            transform: scale(0.95);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f9fafb;
+        }
+
+        .status-complete {
+            color: #10b981;
+            font-weight: 600;
+        }
+
+        .status-inprogress {
+            color: #f59e0b;
+            font-weight: 600;
+        }
+
+        .notification {
+            background: #dbeafe;
+            border: 1px solid #667eea;
+            color: #1e40af;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .notification-icon {
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header-left h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <h1>🏛️ Agente Tributário — Development Dashboard</h1>
+                <p>Real-time project tracking | 2-3 months | 3 teams active</p>
+            </div>
+            <div style="text-align: right;">
+                <div class="status-badge">
+                    <span class="status-indicator status-active"></span>
+                    LIVE
+                </div>
+                <div style="margin-top: 12px;">
+                    <div class="time-label">Current Time (UTC-3)</div>
+                    <div class="time-display" id="current-time">--:--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="notification">
+            <span class="notification-icon">ℹ️</span>
+            <span>All teams activated and executing in parallel. Daily standup: 10:00 AM UTC-3</span>
+        </div>
+
+        <!-- Team Status Overview -->
+        <div class="grid">
+            <!-- @architect -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">🏛️</span>
+                    Aria (Architect)
+                </div>
+                <div class="team-task">Architecture Document (8 sections)</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="architect-progress" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">0% — Est. Feb 16</div>
+
+                <ul class="task-list">
+                    <li><div class="checkbox">○</div> ER Diagram</li>
+                    <li><div class="checkbox">○</div> Component Architecture</li>
+                    <li><div class="checkbox">○</div> Data Flow Diagrams</li>
+                    <li><div class="checkbox">○</div> OpenAPI Spec</li>
+                    <li><div class="checkbox">○</div> Security Design</li>
+                    <li><div class="checkbox">○</div> Deployment Strategy</li>
+                    <li><div class="checkbox">○</div> Risk Mitigations</li>
+                    <li><div class="checkbox">○</div> Performance Strategy</li>
+                </ul>
+
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <div style="font-size: 12px; color: #666;">
+                        <strong>Status:</strong> <span class="status-inprogress">Reading docs</span><br>
+                        <strong>Blocker:</strong> None
+                    </div>
+                </div>
+            </div>
+
+            <!-- @ux-design-expert -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">🎨</span>
+                    Uma (UX/UI Designer)
+                </div>
+                <div class="team-task">Wireframes + Design System</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="ux-progress" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">0% — Est. Feb 16</div>
+
+                <ul class="task-list">
+                    <li><div class="checkbox">○</div> Wireframes 3.1 (Empresário)</li>
+                    <li><div class="checkbox">○</div> Wireframes 3.2 (Contador)</li>
+                    <li><div class="checkbox">○</div> Wireframes 3.3 (Detail)</li>
+                    <li><div class="checkbox">○</div> Wireframes 3.4 (Admin)</li>
+                    <li><div class="checkbox">○</div> Design System</li>
+                    <li><div class="checkbox">○</div> User Journeys</li>
+                    <li><div class="checkbox">○</div> Figma Mockups</li>
+                    <li><div class="checkbox">○</div> WCAG AA Audit</li>
+                </ul>
+
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <div style="font-size: 12px; color: #666;">
+                        <strong>Status:</strong> <span class="status-inprogress">Reading docs</span><br>
+                        <strong>Blocker:</strong> None
+                    </div>
+                </div>
+            </div>
+
+            <!-- @dev -->
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon">💻</span>
+                    Dex (Developer)
+                </div>
+                <div class="team-task">Story 1.1 — Project Setup (7 phases)</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="dev-progress" style="width: 0%"></div>
+                </div>
+                <div class="progress-text">0% — Est. Feb 12</div>
+
+                <ul class="task-list">
+                    <li><div class="checkbox">○</div> Phase 1: Repo + Turborepo</li>
+                    <li><div class="checkbox">○</div> Phase 2: Next.js Frontend</li>
+                    <li><div class="checkbox">○</div> Phase 3: Express Backend</li>
+                    <li><div class="checkbox">○</div> Phase 4: Shared Packages</li>
+                    <li><div class="checkbox">○</div> Phase 5: ESLint/Jest</li>
+                    <li><div class="checkbox">○</div> Phase 6: GitHub Actions</li>
+                    <li><div class="checkbox">○</div> Phase 7: Docker</li>
+                </ul>
+
+                <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #eee;">
+                    <div style="font-size: 12px; color: #666;">
+                        <strong>Status:</strong> <span class="status-inprogress">Reading docs</span><br>
+                        <strong>Blocker:</strong> None
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📊</span>
+                Key Performance Indicators
+            </div>
+            <div class="kpi-grid">
+                <div class="kpi">
+                    <div class="kpi-value">0/30</div>
+                    <div class="kpi-label">Stories Complete</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">0/6</div>
+                    <div class="kpi-label">Epics Complete</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">50-75</div>
+                    <div class="kpi-label">Dev Days Est.</div>
+                </div>
+                <div class="kpi">
+                    <div class="kpi-value">0</div>
+                    <div class="kpi-label">Blockers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📅</span>
+                Week 1 Timeline (Feb 9-15)
+            </div>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">MON 9 FEB</div>
+                        <div class="timeline-text">✓ All teams activated | Start architecture outline | Wireframes sketching</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">TUE 10 FEB</div>
+                        <div class="timeline-text">Daily standup 10 AM | Next.js + Express setup | ER diagram draft</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">WED 11 FEB</div>
+                        <div class="timeline-text">Shared packages setup | Code quality config | Design system outline</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">THU 12 FEB</div>
+                        <div class="timeline-text">GitHub Actions + Docker | Story 1.1 complete ✓</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">FRI 13 FEB</div>
+                        <div class="timeline-text">Story 1.1 validation | Weekly sync 3 PM</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-date">SAT-SUN 14-15 FEB</div>
+                        <div class="timeline-text">Architecture document complete | Design system finalized</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risks -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🚨</span>
+                Active Risks (Monitoring)
+            </div>
+            <div class="risk-item">
+                <div class="risk-title">R1: RAG Relevancy</div>
+                <div class="risk-description">Vector DB may return irrelevant documents. Mitigation: Implement thresholds + user feedback (Story 4.2)</div>
+            </div>
+            <div class="risk-item">
+                <div class="risk-title">R2: OpenAI API Costs</div>
+                <div class="risk-description">Costs may escalate with volume. Mitigation: Rate limiting + caching (Story 4.1, Epic 6)</div>
+            </div>
+            <div class="risk-item">
+                <div class="risk-title">R3: CNPJ API Availability</div>
+                <div class="risk-description">External API may be unavailable. Mitigation: Fallback to manual input + retry logic</div>
+            </div>
+            <div class="risk-item">
+                <div class="risk-title">R4: Scale Performance (100+ req/s)</div>
+                <div class="risk-description">Database may bottleneck. Mitigation: Load testing + Redis caching + DB optimization</div>
+            </div>
+        </div>
+
+        <!-- Status Table -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                Detailed Status
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Agent</th>
+                        <th>Current Task</th>
+                        <th>Progress</th>
+                        <th>ETA</th>
+                        <th>Blocker</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>🏛️ @architect</td>
+                        <td>Reading architect-prompt.md</td>
+                        <td><span class="status-inprogress">In Progress</span></td>
+                        <td>Feb 16</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>🎨 @ux-design-expert</td>
+                        <td>Reading ux-design-prompt.md</td>
+                        <td><span class="status-inprogress">In Progress</span></td>
+                        <td>Feb 16</td>
+                        <td>None</td>
+                    </tr>
+                    <tr>
+                        <td>💻 @dev</td>
+                        <td>GitHub repo creation</td>
+                        <td><span class="status-inprogress">In Progress</span></td>
+                        <td>Feb 12</td>
+                        <td>None</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Quick Links -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🔗</span>
+                Quick Links & Resources
+            </div>
+            <ul class="task-list">
+                <li>📄 <a href="prd.md" style="color: #667eea; text-decoration: none;">PRD</a> — Complete product requirements</li>
+                <li>🏗️ <a href="architect-prompt.md" style="color: #667eea; text-decoration: none;">Architect Prompt</a> — Architecture guidance</li>
+                <li>🎨 <a href="ux-design-prompt.md" style="color: #667eea; text-decoration: none;">UX Design Prompt</a> — Design guidance</li>
+                <li>💻 <a href="dev-story-1.1-prompt.md" style="color: #667eea; text-decoration: none;">Dev Story 1.1</a> — Development task</li>
+                <li>🤝 <a href="team-coordination.md" style="color: #667eea; text-decoration: none;">Team Coordination</a> — Collaboration rules</li>
+                <li>📊 <a href="DASHBOARD.md" style="color: #667eea; text-decoration: none;">Dashboard Markdown</a> — Detailed tracking</li>
+            </ul>
+        </div>
+
+        <!-- Communication -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📞</span>
+                Communication Schedule
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
+                <div style="background: #f0f4ff; padding: 12px; border-radius: 8px;">
+                    <strong style="color: #667eea;">Daily Standup</strong>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                        🕙 10:00 AM UTC-3<br>
+                        ⏱️ 15 minutes<br>
+                        👥 All teams + PM
+                    </div>
+                </div>
+                <div style="background: #f0fff4; padding: 12px; border-radius: 8px;">
+                    <strong style="color: #10b981;">Weekly Sync</strong>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                        🕐 Friday 3:00 PM UTC-3<br>
+                        ⏱️ 30 minutes<br>
+                        👥 All teams + PM
+                    </div>
+                </div>
+                <div style="background: #fff7ed; padding: 12px; border-radius: 8px;">
+                    <strong style="color: #f59e0b;">Async Updates</strong>
+                    <div style="font-size: 12px; color: #666; margin-top: 4px;">
+                        💬 Slack/Discord<br>
+                        📧 < 1 hour response<br>
+                        🚨 Blockers alert PM
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>🏛️ Agente Tributário — Development Dashboard</p>
+            <p>Last updated: 2026-02-09 | Next update: Daily at 5 PM UTC-3</p>
+            <p>— Morgan, monitorando o futuro 📊</p>
+            <button class="refresh-button" onclick="location.reload()">🔄 Refresh Dashboard</button>
+        </div>
+    </div>
+
+    <script>
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const utc3 = new Date(now.getTime() - (3 * 60 * 60 * 1000));
+            const hours = String(utc3.getHours()).padStart(2, '0');
+            const minutes = String(utc3.getMinutes()).padStart(2, '0');
+            document.getElementById('current-time').textContent = `${hours}:${minutes}`;
+        }
+
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Simulate progress updates (you can replace with real data)
+        function updateProgress() {
+            // Get current hour to simulate daily progress
+            const hour = new Date().getHours();
+            const dayProgress = Math.min(hour * 5, 100);
+
+            document.getElementById('architect-progress').style.width = Math.min(dayProgress * 0.3, 100) + '%';
+            document.getElementById('ux-progress').style.width = Math.min(dayProgress * 0.25, 100) + '%';
+            document.getElementById('dev-progress').style.width = Math.min(dayProgress * 0.5, 100) + '%';
+        }
+
+        updateProgress();
+        setInterval(updateProgress, 60000); // Update every minute
+
+        // Auto-refresh page every 5 minutes
+        setInterval(() => {
+            location.reload();
+        }, 300000);
+    </script>
+</body>
+</html>
