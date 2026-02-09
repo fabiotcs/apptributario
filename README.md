@@ -1,15 +1,15 @@
-# 🏛️ Agente Tributário
+# 🏛️ Agente Tritutario
 
 **AI-powered platform for Brazilian tax guidance during the Reforma Tributária**
 
-[![CI Status](https://github.com/yourusername/agente-tributario/workflows/CI/badge.svg)](https://github.com/yourusername/agente-tributario/actions)
+[![CI Status](https://github.com/yourusername/agente-tritutario/workflows/CI/badge.svg)](https://github.com/yourusername/agente-tritutario/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
 
 ## 📋 Project Overview
 
-Agente Tributário is a SaaS platform that helps Brazilian entrepreneurs (MEIs, PJs) and accountants understand and navigate the Reforma Tributária (2025-2027).
+Agente Tritutario is a SaaS platform that helps Brazilian entrepreneurs (MEIs, PJs) and accountants understand and navigate the Reforma Tributária (2025-2027).
 
 **Key Features:**
 - 🤖 AI-powered tax guidance chatbot
@@ -32,8 +32,8 @@ Agente Tributário is a SaaS platform that helps Brazilian entrepreneurs (MEIs, 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/agente-tributario.git
-cd agente-tributario
+git clone https://github.com/yourusername/agente-tritutario.git
+cd agente-tritutario
 
 # 2. Install dependencies
 npm install
@@ -398,8 +398,8 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for guidelines.
 
 ## 📞 Support
 
-- **Issues:** [GitHub Issues](https://github.com/yourusername/agente-tributario/issues)
-- **Discussions:** [GitHub Discussions](https://github.com/yourusername/agente-tributario/discussions)
+- **Issues:** [GitHub Issues](https://github.com/yourusername/agente-tritutario/issues)
+- **Discussions:** [GitHub Discussions](https://github.com/yourusername/agente-tritutario/discussions)
 - **Team:** Check [DASHBOARD.md](./docs/DASHBOARD.md) for team contacts
 
 ---
