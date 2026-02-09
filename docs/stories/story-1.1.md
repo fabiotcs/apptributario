@@ -13,14 +13,14 @@
 
 ## 📝 Story Description
 
-Create a complete, production-ready monorepo with:
+Create a complete, production-ready monorepo for **Agente Tritutario** with:
 - GitHub repository with Turborepo configuration
 - Next.js 16+ frontend (TypeScript, Tailwind, Zustand)
 - Node.js + Express backend (TypeScript)
 - Shared packages for types, utilities, and RAG
 - Code quality tools (ESLint, Prettier, Jest)
 - GitHub Actions CI/CD pipeline
-- Docker Compose for local development
+- Docker Compose for local development (PostgreSQL + Redis)
 - Comprehensive README and environment configuration
 
 **Without this story, no other development can proceed.**
@@ -114,8 +114,8 @@ Create a complete, production-ready monorepo with:
 
 ```bash
 # 1.1 Create GitHub repo
-git clone https://github.com/YOUR_USERNAME/agente-tributario.git
-cd agente-tributario
+git clone https://github.com/YOUR_USERNAME/agente-tritutario.git
+cd agente-tritutario
 
 # 1.2 Initialize Turborepo
 npx create-turbo@latest --skip-install
