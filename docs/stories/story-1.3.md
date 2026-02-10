@@ -4,7 +4,7 @@
 **Story ID:** 1.3
 **Priority:** 🔴 CRITICAL — Blocks Stories 2.x, 3.x, and all user-facing features
 **Assignee:** @dev (Dex)
-**Status:** 🔵 In Progress (Phase 1: Backend Auth Setup)
+**Status:** 🔵 In Progress (Phase 2: Frontend Auth Setup)
 **Estimated:** 2-3 days (solo dev) | 1.5 days (2 devs)
 **Start Date:** Feb 11, 2026
 **Target Completion:** Feb 13, 2026
