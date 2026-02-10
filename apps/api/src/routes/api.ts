@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import authRoutes from './auth';
 import companiesRoutes from './companies';
+import accountantsRoutes from './accountants';
 
 const router = Router();
 
@@ -34,6 +35,9 @@ v1Router.use('/auth', authRoutes);
 
 // Company routes
 v1Router.use('/', companiesRoutes);
+
+// Accountant routes
+v1Router.use('/accountants', accountantsRoutes);
 
 // Export v1 routes under /v1 path
 router.use('/v1', v1Router);

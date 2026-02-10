@@ -25,11 +25,15 @@ model User {
   deletedAt     DateTime?
 
   // Relations
-  companies         Company[]
-  companyUsers      CompanyUser[]
-  chatHistory       ChatHistory[]
-  notifications     Notification[]
-  auditLogs         AuditLog[]
+  companies              Company[]
+  companyUsers           CompanyUser[]
+  chatHistory            ChatHistory[]
+  notifications          Notification[]
+  auditLogs              AuditLog[]
+  accountantProfile      AccountantProfile?
+  accountantAssignments  CompanyAccountant[] @relation(name: "AccountantAssignments")
+  assignmentsMade        CompanyAccountant[] @relation(name: "AssignmentsMade")
+  accountantAuditLogs    AccountantAuditLog[] @relation(name: "AccountantAudits")
 
   @@index([email])
   @@index([role])
@@ -69,17 +73,18 @@ model Company {
   deletedAt     DateTime?
 
   // Relations
-  owner             User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId           String
-  companyUsers      CompanyUser[]
-  branches          CompanyBranch[]
-  regimeHistory     RegimeHistory[]
-  receipts          ReceiptClassification[]
-  chatHistory       ChatHistory[]
-  counterAlerts     CounterAlert[]
-  subscriptions     Subscription[]
-  referrals         Referral[]
-  auditLogs         AuditLog[]
+  owner               User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId             String
+  companyUsers        CompanyUser[]
+  branches            CompanyBranch[]
+  regimeHistory       RegimeHistory[]
+  receipts            ReceiptClassification[]
+  chatHistory         ChatHistory[]
+  counterAlerts       CounterAlert[]
+  subscriptions       Subscription[]
+  referrals           Referral[]
+  auditLogs           AuditLog[]
+  accountants         CompanyAccountant[]
 
   @@index([ownerId])
   @@index([cnpj])
@@ -116,6 +121,99 @@ model CompanyUser {
   @@unique([userId, companyId])
   @@index([userId])
   @@index([companyId])
+}
+
+// ============================================================================
+// ACCOUNTANT MANAGEMENT
+// ============================================================================
+
+model AccountantProfile {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  licenseNumber         String   @unique
+  specializations       String[] // ["TAX", "PAYROLL", "COMPLIANCE", "ACCOUNTING", "ADVISORY"]
+  bio                   String?  @db.Text
+  yearsOfExperience     Int
+  hourlyRate            Int?     // in centavos (R$ * 100)
+
+  isAvailable           Boolean  @default(true)
+  maxClients            Int      @default(10)
+  currentClientCount    Int      @default(0)
+
+  phone                 String?
+  email                 String
+  website               String?
+  certifications        Json?    // [{name, issuer, expiryDate}]
+  profileImageUrl       String?
+
+  auditLogs             AccountantAuditLog[]
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+  @@index([licenseNumber])
+  @@index([isAvailable])
+}
+
+model CompanyAccountant {
+  id                    String   @id @default(cuid())
+
+  companyId             String
+  company               Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  accountantId          String
+  accountant            User     @relation(name: "AccountantAssignments", fields: [accountantId], references: [id], onDelete: Cascade)
+
+  role                  CompanyAccountantRole @default(ADVISOR)
+
+  assignedBy            String
+  assignedByUser        User     @relation(name: "AssignmentsMade", fields: [assignedBy], references: [id], onDelete: Cascade)
+  assignedAt            DateTime @default(now())
+
+  notes                 String?
+  endedAt               DateTime?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@unique([companyId, accountantId])
+  @@index([accountantId])
+  @@index([assignedBy])
+}
+
+enum CompanyAccountantRole {
+  ADVISOR
+  MANAGER
+}
+
+model AccountantAuditLog {
+  id                    String   @id @default(cuid())
+  accountantId          String
+  accountant            AccountantProfile @relation(fields: [accountantId], references: [id], onDelete: Cascade)
+
+  action                AccountantAuditAction // ASSIGNED, REMOVED, PROFILE_UPDATED, AVAILABILITY_CHANGED
+  companyId             String?
+
+  performedBy           String
+  performedByUser       User     @relation("AccountantAudits", fields: [performedBy], references: [id], onDelete: Cascade)
+
+  changes               Json?    // {field: {old, new}}
+  createdAt             DateTime @default(now())
+
+  @@index([accountantId])
+  @@index([performedBy])
+  @@index([createdAt])
+}
+
+enum AccountantAuditAction {
+  ASSIGNED
+  REMOVED
+  PROFILE_UPDATED
+  AVAILABILITY_CHANGED
+  REASSIGNED
 }
 
 enum CompanyUserRole {
