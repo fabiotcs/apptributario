@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import authRoutes from './auth';
 import companiesRoutes from './companies';
 import accountantsRoutes from './accountants';
+import taxRoutes from './tax';
 
 const router = Router();
 
@@ -38,6 +39,9 @@ v1Router.use('/', companiesRoutes);
 
 // Accountant routes
 v1Router.use('/accountants', accountantsRoutes);
+
+// Tax analysis routes
+v1Router.use('/tax', taxRoutes);
 
 // Export v1 routes under /v1 path
 router.use('/v1', v1Router);
