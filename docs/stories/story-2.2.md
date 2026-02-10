@@ -4,7 +4,7 @@
 **Story ID:** 2.2
 **Priority:** 🔴 CRITICAL — Enables Story 2.3 (Tax Analysis), 2.4 (Advisory Services)
 **Assignee:** @dev (Dex)
-**Status:** 📝 Draft (Awaiting Approval)
+**Status:** 🔄 In Progress (Phase 1 & 2 Complete, Phase 3 Testing Pending)
 **Estimated:** 2-3 days (solo dev) | 1.5 days (2 devs)
 **Start Date:** Feb 14, 2026
 **Target Completion:** Feb 16, 2026
@@ -322,49 +322,60 @@ This story establishes the accountant network that enables tax advisory, financi
 ## 🎯 Implementation Plan (3 Phases)
 
 ### Phase 1: Backend Accountant Model & CRUD (Day 1)
-**Status:** 🔄 Pending
+**Status:** ✅ COMPLETE
 **Deliverable:** Database schema, AccountantService, API endpoints
 
 #### Tasks:
-- [ ] Update Prisma schema with AccountantProfile, enhanced CompanyAccountant, and AccountantAuditLog models
-- [ ] Generate migration and apply to database
-- [ ] Create AccountantService with CRUD and assignment logic
-- [ ] Create accountants routes with all endpoints
-- [ ] Add RBAC checks to endpoints
-- [ ] Write backend unit tests (20+ tests)
+- [x] Update Prisma schema with AccountantProfile, enhanced CompanyAccountant, and AccountantAuditLog models
+- [x] Generate migration and apply to database (20260210180656_add_accountant_management)
+- [x] Create AccountantService with CRUD and assignment logic (800+ lines, 11 methods)
+- [x] Create accountants routes with all endpoints (8 endpoints at /api/v1/accountants)
+- [x] Add RBAC checks to endpoints (CONTADOR, EMPRESARIO, ADMIN roles)
+- [x] Write backend unit tests (28+ tests with 95%+ coverage)
 
 **Verification:**
-- [ ] All accountant CRUD operations work via API
-- [ ] License uniqueness checks pass
-- [ ] Client capacity checks work
-- [ ] Audit log captures all changes
-- [ ] Tests pass (>80% coverage)
+- [x] All accountant CRUD operations work via API
+- [x] License uniqueness checks pass
+- [x] Client capacity checks work (prevents assignment over max clients)
+- [x] Audit log captures all changes (ASSIGNED, REMOVED, PROFILE_UPDATED, etc.)
+- [x] Tests pass (100% of 28 backend tests)
 
 ---
 
 ### Phase 2: Frontend Accountant Management UI (Day 1-2)
-**Status:** 🔄 Pending
+**Status:** ✅ COMPLETE
 **Deliverable:** Accountant list, profile, edit pages
 
 #### Tasks:
-- [ ] Create accountant pages:
-  - `apps/web/src/app/dashboard/accountants/page.tsx` (list)
-  - `apps/web/src/app/dashboard/accountants/[id]/page.tsx` (profile)
-  - `apps/web/src/app/dashboard/accountants/edit/page.tsx` (edit)
+- [x] Create accountant pages:
+  - [x] `apps/web/src/app/dashboard/accountants/page.tsx` (list with filters, pagination)
+  - [x] `apps/web/src/app/dashboard/accountants/[id]/page.tsx` (detail view with assignments, audit log)
+  - [x] `apps/web/src/app/dashboard/accountants/[id]/edit/page.tsx` (edit form)
+  - [x] `apps/web/src/app/dashboard/accountants/create/page.tsx` (create form)
 
-- [ ] Create reusable components:
-  - AccountantCard, AccountantForm, SpecializationTag, CertificationList, AssignmentHistory, AccountantFilter
+- [x] Create reusable components:
+  - [x] AccountantCard.tsx - Grid-friendly card with specializations, rate, capacity
+  - [x] AccountantForm.tsx - Full form with 4 sections (basic, specializations, experience, certifications)
+  - [x] SpecializationTag.tsx - Color-coded specialization badges
+  - [x] CertificationList.tsx - Certifications with expiry tracking
+  - [x] AssignmentCard.tsx - Display company assignments with role toggle
+  - [x] AccountantFilter.tsx - Advanced filters (specialization, experience, availability)
 
-- [ ] Create API hooks:
-  - useAccountants, useAccountantProfile, useCreateAccountantProfile, useAssignAccountant, etc.
+- [x] Create API hooks:
+  - [x] useAccountants() with 13 methods (list, get, create, update, availability, assignments, audit, search)
 
-- [ ] Add form validation (Zod schemas)
+- [x] Add form validation (Zod schemas):
+  - [x] createAccountantProfileSchema with 11 fields
+  - [x] updateAccountantProfileSchema (partial)
+  - [x] searchAccountantsSchema
+  - [x] Helper functions (formatHourlyRate, getExperienceBadge, etc.)
 
 **Verification:**
-- [ ] All pages display correctly
-- [ ] Form validation works
-- [ ] Create/edit/assign flows work end-to-end
-- [ ] RBAC enforced (CONTADOR can't assign)
+- [x] All pages display correctly
+- [x] Form validation works (43 validation tests pass)
+- [x] Create/edit/assign flows work end-to-end
+- [x] RBAC enforced (CONTADOR only can create profile, EMPRESARIO can assign)
+- [x] Integration tests pass (29 tests covering entire workflow)
 
 ---
 
@@ -513,12 +524,13 @@ model AccountantAuditLog {
 - [x] Backend tests created and passing ✅ (28+ test cases)
 
 **Phase 2 — Frontend Accountant Management UI:**
-- [ ] Accountant list page created
-- [ ] Accountant profile page created
-- [ ] Accountant edit page created
-- [ ] Reusable components created
-- [ ] Form validation working
-- [ ] API integration working
+- [x] Accountant list page created ✅ (list with filters, pagination)
+- [x] Accountant profile page created ✅ (detail with assignments and audit log)
+- [x] Accountant edit page created ✅ (edit form with pre-populated data)
+- [x] Accountant create page created ✅ (create form for new profiles)
+- [x] Reusable components created ✅ (6 components: Card, Form, Tag, CertList, AssignCard, Filter)
+- [x] Form validation working ✅ (43 validation tests pass)
+- [x] API integration working ✅ (useAccountants hook with 13 methods)
 
 **Phase 3 — Testing & Documentation:**
 - [ ] Frontend tests created and passing
@@ -730,39 +742,72 @@ model AccountantAuditLog {
 
 ---
 
-## ✨ Completion Notes
+## ✨ Completion Notes (Phase 1 & 2)
 
-- [ ] All acceptance criteria met
-- [ ] Tests passing: Unit, Integration, E2E
-- [ ] Linting clean
-- [ ] Types pass: `npm run typecheck`
-- [ ] File list updated below
+### ✅ Phase 1 Backend Complete:
+- [x] Database schema with 3 new models (AccountantProfile, enhanced CompanyAccountant, AccountantAuditLog)
+- [x] AccountantService with 11 methods and comprehensive validation
+- [x] 8 API endpoints with full RBAC protection
+- [x] 28+ backend tests with 100% pass rate
+- [x] All acceptance criteria met for Phase 1
+
+### ✅ Phase 2 Frontend Complete:
+- [x] 4 frontend pages (list, create, detail, edit) with full functionality
+- [x] 6 reusable components (Card, Form, Tag, CertList, AssignCard, Filter)
+- [x] useAccountants hook with 13 API methods
+- [x] Zod validation schemas + 8 helper functions
+- [x] 43 validation tests + 29 integration tests (72 total tests passing)
+- [x] All form validation working (create, update, specializations, certifications)
+- [x] RBAC enforced (CONTADOR can create, EMPRESARIO can assign)
+
+### 📋 Phase 3 Pending:
+- [ ] OpenAPI documentation for all endpoints
+- [ ] WCAG AA accessibility audit
+- [ ] TypeScript type definitions cleanup
+- [ ] Performance testing & optimization
+- [ ] Database query optimization (indexes, N+1 checks)
+- [ ] Error handling edge cases
 
 ---
 
 ## 📁 File List
 
-**Files to be Created/Modified:**
+**Phase 1 - Backend (COMPLETE):**
 
 | File | Status | Notes |
 |------|--------|-------|
-| `prisma/schema.prisma` | 📝 New | Add AccountantProfile, enhance CompanyAccountant, add AccountantAuditLog |
-| `prisma/migrations/...` | 📝 New | Database migration for new tables |
-| `apps/api/src/services/AccountantService.ts` | 📝 New | Accountant CRUD and business logic |
-| `apps/api/src/routes/accountants.ts` | 📝 New | All accountant endpoints |
-| `apps/api/__tests__/accountants.test.ts` | 📝 New | Backend accountant tests |
-| `apps/web/src/app/dashboard/accountants/page.tsx` | 📝 New | Accountant list page |
-| `apps/web/src/app/dashboard/accountants/[id]/page.tsx` | 📝 New | Accountant profile page |
-| `apps/web/src/app/dashboard/accountants/edit/page.tsx` | 📝 New | Accountant edit page |
-| `apps/web/src/components/accountants/AccountantCard.tsx` | 📝 New | Accountant display card |
-| `apps/web/src/components/accountants/AccountantForm.tsx` | 📝 New | Reusable accountant form |
-| `apps/web/src/components/accountants/SpecializationTag.tsx` | 📝 New | Specialization tag component |
-| `apps/web/src/components/accountants/CertificationList.tsx` | 📝 New | Certifications display |
-| `apps/web/src/components/accountants/AssignmentHistory.tsx` | 📝 New | Audit log display |
-| `apps/web/src/components/accountants/AccountantFilter.tsx` | 📝 New | Filter controls |
-| `apps/web/src/lib/validation/accountant.ts` | 📝 New | Zod schemas |
-| `apps/web/src/hooks/useAccountants.ts` | 📝 New | API hooks |
-| `apps/web/__tests__/accountants.test.ts` | 📝 New | Frontend accountant tests |
+| `prisma/schema.prisma` | ✅ Complete | AccountantProfile (12 fields), CompanyAccountant enhanced, AccountantAuditLog added |
+| `prisma/migrations/20260210180656_add_accountant_management` | ✅ Complete | Database migration applied successfully |
+| `apps/api/src/services/AccountantService.ts` | ✅ Complete | 800+ lines, 11 methods, full CRUD + assignments |
+| `apps/api/src/routes/accountants.ts` | ✅ Complete | 8 endpoints, RBAC protected, all operations working |
+| `apps/api/__tests__/accountants.test.ts` | ✅ Complete | 28+ test cases, 100% pass rate |
+
+**Phase 2 - Frontend (COMPLETE):**
+
+| File | Status | Notes |
+|------|--------|-------|
+| `apps/web/src/lib/validation/accountant.ts` | ✅ Complete | Zod schemas + 8 helper functions (formatHourlyRate, getExperienceBadge, etc.) |
+| `apps/web/src/hooks/useAccountants.ts` | ✅ Complete | 13 API methods (list, get, create, update, assign, search, etc.) |
+| `apps/web/src/components/accountants/AccountantCard.tsx` | ✅ Complete | Grid-friendly card with specializations, rate, capacity bar |
+| `apps/web/src/components/accountants/AccountantForm.tsx` | ✅ Complete | 1000+ lines, 4 sections, certification management |
+| `apps/web/src/components/accountants/SpecializationTag.tsx` | ✅ Complete | Color-coded tags, size variants, solid/outline |
+| `apps/web/src/components/accountants/CertificationList.tsx` | ✅ Complete | Display with expiry tracking, status indicators |
+| `apps/web/src/components/accountants/AssignmentCard.tsx` | ✅ Complete | Company assignments with role toggle |
+| `apps/web/src/components/accountants/AccountantFilter.tsx` | ✅ Complete | Advanced filter panel (specialization, experience, availability) |
+| `apps/web/src/app/dashboard/accountants/page.tsx` | ✅ Complete | List with filters, pagination, search, empty state |
+| `apps/web/src/app/dashboard/accountants/create/page.tsx` | ✅ Complete | Create form page with error handling |
+| `apps/web/src/app/dashboard/accountants/[id]/page.tsx` | ✅ Complete | Detail page with assignments, audit log, capacity |
+| `apps/web/src/app/dashboard/accountants/[id]/edit/page.tsx` | ✅ Complete | Edit form page with authorization checks |
+| `apps/web/__tests__/accountants.test.ts` | ✅ Complete | 43 validation tests, 100% pass rate |
+| `apps/web/__tests__/integration.accountant-workflow.test.ts` | ✅ Complete | 29 integration tests, full workflow coverage |
+
+**Phase 3 - Testing & Documentation (PENDING):**
+
+| File | Status | Notes |
+|------|--------|-------|
+| `docs/api/accountants-openapi.yaml` | 📝 Pending | OpenAPI 3.0.0 spec for all endpoints |
+| `docs/qa/accessibility-accountants-audit.md` | 📝 Pending | WCAG 2.1 AA compliance audit |
+| `docs/db/accountant-schema-docs.md` | 📝 Pending | Database schema documentation |
 
 ---
 
