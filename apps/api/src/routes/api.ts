@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import authRoutes from './auth';
 
 const router = Router();
 
@@ -7,7 +8,7 @@ interface ApiResponse {
   timestamp: string;
 }
 
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   const response: ApiResponse = {
     message: 'Welcome to Agente Tritutario API',
     timestamp: new Date().toISOString(),
@@ -23,5 +24,14 @@ router.post('/test', (req: Request, res: Response) => {
     timestamp: new Date().toISOString(),
   });
 });
+
+// V1 API Routes
+const v1Router = Router();
+
+// Authentication routes
+v1Router.use('/auth', authRoutes);
+
+// Export v1 routes under /v1 path
+router.use('/v1', v1Router);
 
 export default router;

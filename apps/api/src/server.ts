@@ -9,7 +9,7 @@ dotenv.config();
 
 const app: Express = express();
 const logger = createLogger('server');
-const PORT = process.env.API_PORT || 3001;
+const PORT = parseInt(process.env.API_PORT || '3001', 10);
 const API_HOST = process.env.API_HOST || 'localhost';
 
 // Middleware
@@ -22,7 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
   logger.info(`${req.method} ${req.path}`);
   next();
 });
@@ -41,7 +41,7 @@ app.use((req: Request, res: Response) => {
 });
 
 // Error handling middleware
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error:', err);
   res.status(500).json({
     error: 'Internal Server Error',
