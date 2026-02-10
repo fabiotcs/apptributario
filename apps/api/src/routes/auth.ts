@@ -16,7 +16,7 @@ const authLimiter = rateLimit({
   standardHeaders: true, // Return rate limit info in `RateLimit-*` headers
   legacyHeaders: false, // Disable `X-RateLimit-*` headers
   keyGenerator: (req) => req.ip || 'unknown', // Use IP address as key
-  skip: (req) => {
+  skip: (_req) => {
     // Skip rate limiting for successful login attempts by checking status
     return false;
   },
@@ -183,7 +183,7 @@ router.get('/session', authMiddleware, async (req: Request, res: Response) => {
  * Logout user (client-side clearing of tokens)
  * This endpoint is primarily for audit logging
  */
-router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
+router.post('/logout', authMiddleware, async (_req: Request, res: Response) => {
   try {
     // In a stateless JWT system, logout is handled by client clearing tokens
     // This endpoint can be used for audit logging, blacklist management, etc.

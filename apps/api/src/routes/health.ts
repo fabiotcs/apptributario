@@ -25,7 +25,7 @@ interface HealthCheckResponse {
  * GET /health
  * Basic health check endpoint
  */
-router.get('/', (req: Request, res: Response) => {
+router.get('/', (_req: Request, res: Response) => {
   const healthStatus: HealthStatus = {
     status: 'ok',
     timestamp: new Date().toISOString(),
@@ -39,7 +39,7 @@ router.get('/', (req: Request, res: Response) => {
  * GET /health/db
  * Database connectivity check
  */
-router.get('/db', async (req: Request, res: Response) => {
+router.get('/db', async (_req: Request, res: Response) => {
   try {
     const startTime = Date.now();
 
@@ -79,7 +79,7 @@ router.get('/db', async (req: Request, res: Response) => {
  * GET /health/ready
  * Readiness probe (checks if service is ready to accept traffic)
  */
-router.get('/ready', async (req: Request, res: Response) => {
+router.get('/ready', async (_req: Request, res: Response) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.status(200).json({ ready: true });

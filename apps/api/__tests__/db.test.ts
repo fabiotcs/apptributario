@@ -20,7 +20,7 @@ describe('Database Integration', () => {
     test('should execute a raw query', async () => {
       const result = await prisma.$queryRaw`SELECT 1 as value`;
       expect(Array.isArray(result)).toBe(true);
-      expect(result.length).toBeGreaterThan(0);
+      expect((result as unknown[]).length).toBeGreaterThan(0);
     });
 
     test('should disconnect without errors', async () => {

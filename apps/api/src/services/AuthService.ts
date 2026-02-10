@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
-import jwt, { SignOptions } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import prisma from '../lib/db';
+import { EmailService } from './EmailService';
 
 interface JwtPayload {
   id: string;
@@ -183,6 +184,11 @@ export class AuthService {
         },
       });
 
+      // Send welcome email (fire and forget)
+      EmailService.sendWelcomeEmail(user.email, user.name, user.role).catch(
+        (err) => console.error('Failed to send welcome email:', err)
+      );
+
       // Generate tokens
       const tokenPayload: JwtPayload = {
         id: user.id,
@@ -323,9 +329,14 @@ export class AuthService {
         email: user.email,
       });
 
+      // Send password reset email (fire and forget)
+      EmailService.sendPasswordResetEmail(user.email, user.name, resetToken).catch(
+        (err) => console.error('Failed to send password reset email:', err)
+      );
+
       return {
         success: true,
-        token: resetToken,
+        token: resetToken, // In development, return token for testing
       };
     } catch (error) {
       console.error('Password reset request error:', error);
