@@ -1,0 +1,344 @@
+// Agente Tributário — Complete Database Schema
+// 13 tables for multi-tenant tax guidance platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// USERS & AUTHENTICATION
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          UserRole  @default(EMPRESARIO)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // Relations
+  companies         Company[]
+  companyUsers      CompanyUser[]
+  chatHistory       ChatHistory[]
+  notifications     Notification[]
+  auditLogs         AuditLog[]
+
+  @@index([email])
+  @@index([role])
+}
+
+enum UserRole {
+  ADMIN
+  CONTADOR
+  EMPRESARIO
+}
+
+// ============================================================================
+// COMPANIES & ORGANIZATION
+// ============================================================================
+
+model Company {
+  id            String    @id @default(cuid())
+  cnpj          String    @unique
+  name          String
+  taxRegime     RegimeType @default(SIMPLES_NACIONAL)
+  revenue       BigInt?   // in centavos (R$ * 100)
+  employees     Int?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  // Relations
+  owner             User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId           String
+  companyUsers      CompanyUser[]
+  branches          CompanyBranch[]
+  regimeHistory     RegimeHistory[]
+  receipts          ReceiptClassification[]
+  chatHistory       ChatHistory[]
+  counterAlerts     CounterAlert[]
+  subscriptions     Subscription[]
+  referrals         Referral[]
+  auditLogs         AuditLog[]
+
+  @@index([ownerId])
+  @@index([cnpj])
+}
+
+enum RegimeType {
+  SIMPLES_NACIONAL
+  LUCRO_PRESUMIDO
+  LUCRO_REAL
+}
+
+// ============================================================================
+// COMPANY RELATIONSHIPS & BRANCHES
+// ============================================================================
+
+model CompanyUser {
+  id        String    @id @default(cuid())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+  role      CompanyUserRole
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([userId, companyId])
+  @@index([userId])
+  @@index([companyId])
+}
+
+enum CompanyUserRole {
+  OWNER
+  ACCOUNTANT
+  VIEWER
+}
+
+model CompanyBranch {
+  id        String    @id @default(cuid())
+  company   Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId String
+  name      String
+  cnpj      String    @unique
+  state     String    // UF: SP, RJ, etc.
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([companyId])
+  @@index([state])
+}
+
+// ============================================================================
+// TAX REGIME & CLASSIFICATION
+// ============================================================================
+
+model RegimeHistory {
+  id            String     @id @default(cuid())
+  company       Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId     String
+  fromRegime    RegimeType
+  toRegime      RegimeType
+  effectiveDate DateTime
+  reason        String?    @db.Text
+  createdAt     DateTime   @default(now())
+
+  @@index([companyId])
+  @@index([effectiveDate])
+}
+
+model ReceiptClassification {
+  id                 String       @id @default(cuid())
+  company            Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId          String
+  type               ReceiptType
+  amount             BigInt       // in centavos
+  classificationCode String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([companyId])
+  @@index([type])
+}
+
+enum ReceiptType {
+  SERVICO
+  PRODUTO
+  OUTRO
+}
+
+// ============================================================================
+// AI CHAT & CONVERSATIONS
+// ============================================================================
+
+model ChatHistory {
+  id            String    @id @default(cuid())
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  company       Company?  @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId     String?
+  role          ChatRole
+  content       String    @db.Text
+  feedback      ChatFeedback?
+  createdAt     DateTime  @default(now())
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([createdAt])
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
+model ChatFeedback {
+  id            String      @id @default(cuid())
+  chatMessage   ChatHistory @relation(fields: [chatMessageId], references: [id], onDelete: Cascade)
+  chatMessageId String      @unique
+  rating        Int         // 1-5 stars
+  feedback      String?     @db.Text
+  createdAt     DateTime    @default(now())
+
+  @@index([rating])
+}
+
+// ============================================================================
+// NOTIFICATIONS & ALERTS
+// ============================================================================
+
+model Notification {
+  id        String             @id @default(cuid())
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      NotificationType
+  title     String
+  message   String             @db.Text
+  isRead    Boolean            @default(false)
+  metadata  Json?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  REGIME_ALERT
+  LEGISLATION_UPDATE
+  FATURAMENTO_LIMIT
+  CONTADOR_MESSAGE
+  REFERRAL_UPDATE
+}
+
+model CounterAlert {
+  id          String     @id @default(cuid())
+  company     Company    @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId   String
+  alertType   AlertType
+  message     String     @db.Text
+  severity    AlertLevel
+  isResolved  Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  resolvedAt  DateTime?
+
+  @@index([companyId])
+  @@index([severity])
+  @@index([isResolved])
+}
+
+enum AlertType {
+  REGIME_TRANSITION
+  FATURAMENTO_LIMIT
+  LEGISLATION_CHANGE
+  COMPLIANCE_REMINDER
+  REFERRAL_OPPORTUNITY
+}
+
+enum AlertLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+// ============================================================================
+// MONETIZATION
+// ============================================================================
+
+model Subscription {
+  id                 String             @id @default(cuid())
+  company            Company            @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId          String             @unique
+  tier               PlanTier
+  stripeCustomerId   String?
+  stripePriceId      String?
+  status             SubscriptionStatus
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  @@index([status])
+}
+
+enum PlanTier {
+  FREE
+  BASIC
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+model Referral {
+  id               String           @id @default(cuid())
+  company          Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId        String
+  referrerEmail    String           // Contador email
+  commissionRate   Float            // 0.10 = 10%
+  status           ReferralStatus
+  monthlyEarnings  BigInt           @default(0) // in centavos
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([referrerEmail])
+  @@index([status])
+}
+
+enum ReferralStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+}
+
+// ============================================================================
+// AUDIT & COMPLIANCE (LGPD)
+// ============================================================================
+
+model AuditLog {
+  id          String      @id @default(cuid())
+  user        User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId      String?
+  company     Company?    @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  companyId   String?
+  action      AuditAction
+  resource    String      // "User", "Company", etc.
+  resourceId  String
+  changes     Json?  // Before/after values
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime    @default(now())
+
+  @@index([userId])
+  @@index([companyId])
+  @@index([createdAt])
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  LOGIN
+  LOGOUT
+  PERMISSION_GRANT
+  PERMISSION_REVOKE
+  EXPORT_DATA
+}
