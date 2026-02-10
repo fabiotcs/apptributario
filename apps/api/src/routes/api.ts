@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import authRoutes from './auth';
+import companiesRoutes from './companies';
 
 const router = Router();
 
@@ -30,6 +31,9 @@ const v1Router = Router();
 
 // Authentication routes
 v1Router.use('/auth', authRoutes);
+
+// Company routes
+v1Router.use('/', companiesRoutes);
 
 // Export v1 routes under /v1 path
 router.use('/v1', v1Router);

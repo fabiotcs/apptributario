@@ -49,9 +49,21 @@ model Company {
   id            String    @id @default(cuid())
   cnpj          String    @unique
   name          String
-  taxRegime     RegimeType @default(SIMPLES_NACIONAL)
-  revenue       BigInt?   // in centavos (R$ * 100)
+  legalName     String?   // Official legal name
+  industry      String?   // Industry classification
+  description   String?   @db.Text // Business description
+  address       String?   // Street address
+  city          String?
+  state         String?   // State code (SP, RJ, etc.)
+  zipCode       String?
+  phone         String?
+  email         String?
+  website       String?
+  foundedYear   Int?
   employees     Int?
+  revenue       BigInt?   // in centavos (R$ * 100)
+  taxRegime     RegimeType @default(SIMPLES_NACIONAL)
+  status        CompanyStatus @default(ACTIVE)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   deletedAt     DateTime?
@@ -71,12 +83,19 @@ model Company {
 
   @@index([ownerId])
   @@index([cnpj])
+  @@index([status])
 }
 
 enum RegimeType {
   SIMPLES_NACIONAL
   LUCRO_PRESUMIDO
   LUCRO_REAL
+}
+
+enum CompanyStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 // ============================================================================
