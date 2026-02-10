@@ -1,0 +1,558 @@
+openapi: 3.0.0
+info:
+  title: Agente Tributário - Tax Analysis API
+  description: Comprehensive tax analysis and optimization API for Brazilian companies
+  version: 1.0.0
+  contact:
+    name: Agente Tributário Support
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development
+  - url: https://api.agente-tributario.com/api/v1
+    description: Production
+
+security:
+  - bearerAuth: []
+
+paths:
+  /tax/analyses:
+    post:
+      summary: Create new tax analysis
+      tags:
+        - Tax Analysis
+      operationId: createTaxAnalysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaxAnalysisRequest'
+      responses:
+        '201':
+          description: Analysis created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxAnalysis'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden - Company access denied
+
+    get:
+      summary: List tax analyses
+      tags:
+        - Tax Analysis
+      operationId: listTaxAnalyses
+      parameters:
+        - name: companyId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [DRAFT, COMPLETED, REVIEWED, ARCHIVED]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+      responses:
+        '200':
+          description: List of analyses
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxAnalysisListResponse'
+        '401':
+          description: Unauthorized
+
+  /tax/analyses/{id}:
+    get:
+      summary: Get tax analysis details
+      tags:
+        - Tax Analysis
+      operationId: getTaxAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Analysis details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxAnalysisDetail'
+        '404':
+          description: Analysis not found
+        '403':
+          description: Unauthorized access
+
+    patch:
+      summary: Update tax analysis
+      tags:
+        - Tax Analysis
+      operationId: updateTaxAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaxAnalysisRequest'
+      responses:
+        '200':
+          description: Analysis updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxAnalysis'
+        '403':
+          description: Only owner or accountant can update
+
+    delete:
+      summary: Archive tax analysis
+      tags:
+        - Tax Analysis
+      operationId: deleteTaxAnalysis
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Analysis archived
+        '403':
+          description: Unauthorized
+
+  /tax/analyses/{id}/comparison:
+    get:
+      summary: Get tax regime comparison
+      tags:
+        - Tax Analysis
+      operationId: getTaxComparison
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tax regime comparison
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxComparison'
+
+  /tax/analyses/{id}/opportunities:
+    get:
+      summary: Get identified tax opportunities
+      tags:
+        - Tax Analysis
+      operationId: getTaxOpportunities
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of opportunities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxOpportunity'
+
+  /tax/filings:
+    get:
+      summary: List company tax filings
+      tags:
+        - Tax Filings
+      operationId: listTaxFilings
+      parameters:
+        - name: companyId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: year
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [PENDING, FILED, OVERDUE, EXEMPT]
+      responses:
+        '200':
+          description: List of filings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaxFiling'
+
+  /tax/filings/{id}/mark-filed:
+    post:
+      summary: Mark filing as completed
+      tags:
+        - Tax Filings
+      operationId: markTaxFilingFiled
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkFiledRequest'
+      responses:
+        '200':
+          description: Filing marked as filed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxFiling'
+
+  /tax/forecast:
+    post:
+      summary: Generate tax forecast
+      tags:
+        - Tax Analysis
+      operationId: generateTaxForecast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForecastRequest'
+      responses:
+        '200':
+          description: Tax forecast
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaxForecast'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateTaxAnalysisRequest:
+      type: object
+      required:
+        - companyId
+        - year
+        - analysisType
+        - grossRevenue
+        - sector
+      properties:
+        companyId:
+          type: string
+          format: uuid
+        year:
+          type: integer
+          minimum: 2000
+          maximum: 2100
+        quarter:
+          type: integer
+          minimum: 1
+          maximum: 4
+        analysisType:
+          type: string
+          enum: [QUARTERLY, ANNUAL, CUSTOM]
+        grossRevenue:
+          type: number
+          description: Revenue in cents
+          minimum: 0
+        expenses:
+          type: number
+          description: Expenses in cents
+        deductions:
+          type: number
+          description: Deductions in cents
+        taxCredits:
+          type: number
+          description: Tax credits in cents
+        previousPayments:
+          type: number
+          description: Previously paid taxes in cents
+        sector:
+          type: string
+        notes:
+          type: string
+          maxLength: 500
+
+    UpdateTaxAnalysisRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+        status:
+          type: string
+          enum: [DRAFT, COMPLETED, REVIEWED, ARCHIVED]
+
+    TaxAnalysis:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        year:
+          type: integer
+        quarter:
+          type: integer
+        analysisType:
+          type: string
+          enum: [QUARTERLY, ANNUAL, CUSTOM]
+        status:
+          type: string
+          enum: [DRAFT, COMPLETED, REVIEWED, ARCHIVED]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    TaxAnalysisDetail:
+      allOf:
+        - $ref: '#/components/schemas/TaxAnalysis'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/TaxData'
+            comparison:
+              $ref: '#/components/schemas/TaxComparison'
+            opportunities:
+              type: array
+              items:
+                $ref: '#/components/schemas/TaxOpportunity'
+
+    TaxData:
+      type: object
+      properties:
+        grossRevenue:
+          type: number
+        expenses:
+          type: number
+        deductions:
+          type: number
+        taxCredits:
+          type: number
+        previousPayments:
+          type: number
+
+    TaxComparison:
+      type: object
+      properties:
+        simplesNacional:
+          $ref: '#/components/schemas/RegimeCalculation'
+        lucroPresumido:
+          $ref: '#/components/schemas/RegimeCalculation'
+        lucroReal:
+          $ref: '#/components/schemas/RegimeCalculation'
+        recommendedRegime:
+          type: string
+          enum: [SIMPLES, PRESUMIDO, REAL]
+        estimatedSavings:
+          type: number
+          description: Annual savings from recommended regime
+
+    RegimeCalculation:
+      type: object
+      properties:
+        taxRate:
+          type: number
+        taxLiability:
+          type: number
+        monthlyPayment:
+          type: number
+        quarterlyPayment:
+          type: number
+        advantages:
+          type: array
+          items:
+            type: string
+        disadvantages:
+          type: array
+          items:
+            type: string
+        eligible:
+          type: boolean
+        eligibilityNotes:
+          type: string
+
+    TaxOpportunity:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        category:
+          type: string
+          enum: [DEDUCTION, CREDIT, TIMING, EXPENSE_OPTIMIZATION]
+        opportunity:
+          type: string
+        estimatedValue:
+          type: number
+        riskLevel:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        implementation:
+          type: string
+
+    TaxFiling:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        companyId:
+          type: string
+          format: uuid
+        filingType:
+          type: string
+          enum: [ECF, ETR, DARF, ANNUAL_RETURN]
+        quarter:
+          type: integer
+        year:
+          type: integer
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum: [PENDING, FILED, OVERDUE, EXEMPT]
+        filedDate:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    MarkFiledRequest:
+      type: object
+      required:
+        - filedDate
+      properties:
+        filedDate:
+          type: string
+          format: date-time
+        notes:
+          type: string
+
+    ForecastRequest:
+      type: object
+      required:
+        - companyId
+        - currentRevenue
+        - growthRate
+      properties:
+        companyId:
+          type: string
+          format: uuid
+        currentRevenue:
+          type: number
+        growthRate:
+          type: number
+
+    TaxForecast:
+      type: object
+      properties:
+        quarters:
+          type: array
+          items:
+            type: object
+            properties:
+              quarter:
+                type: string
+              revenue:
+                type: number
+              estimatedTax:
+                type: number
+              recommended:
+                type: number
+
+    TaxAnalysisListResponse:
+      type: object
+      properties:
+        analyses:
+          type: array
+          items:
+            $ref: '#/components/schemas/TaxAnalysis'
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+            limit:
+              type: integer
+            total:
+              type: integer
+            pages:
+              type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        status:
+          type: integer
