@@ -3,6 +3,7 @@ import authRoutes from './auth';
 import companiesRoutes from './companies';
 import accountantsRoutes from './accountants';
 import taxRoutes from './tax';
+import advisoryRoutes from './advisory';
 
 const router = Router();
 
@@ -42,6 +43,9 @@ v1Router.use('/accountants', accountantsRoutes);
 
 // Tax analysis routes
 v1Router.use('/tax', taxRoutes);
+
+// Advisory routes
+v1Router.use('/advisory', advisoryRoutes);
 
 // Export v1 routes under /v1 path
 router.use('/v1', v1Router);
