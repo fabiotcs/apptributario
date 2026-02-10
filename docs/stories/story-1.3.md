@@ -4,7 +4,7 @@
 **Story ID:** 1.3
 **Priority:** 🔴 CRITICAL — Blocks Stories 2.x, 3.x, and all user-facing features
 **Assignee:** @dev (Dex)
-**Status:** 🔵 In Progress (Phase 2: Frontend Auth Setup)
+**Status:** 🔵 In Progress (Phase 3: Email & Password Reset)
 **Estimated:** 2-3 days (solo dev) | 1.5 days (2 devs)
 **Start Date:** Feb 11, 2026
 **Target Completion:** Feb 13, 2026
@@ -213,8 +213,8 @@ This story establishes the authentication layer that protects all user data and 
 ---
 
 ### Phase 2: Frontend Auth Setup (Day 1-2)
-**Status:** 🔄 Pending
-**Deliverable:** NextAuth configuration, UI components, protected routes
+**Status:** [x] COMPLETE
+**Deliverable:** NextAuth configuration, UI components, protected routes ✅
 
 #### Tasks:
 - [ ] Install NextAuth.js v5
@@ -533,11 +533,14 @@ describe('POST /api/v1/auth/register', () => {
 - [x] 35 auth tests created and passing ✅
 
 **Phase 2 — Frontend Auth Setup:**
-- [ ] NextAuth.js configured
-- [ ] Login/signup pages created
-- [ ] Protected routes configured
-- [ ] Session provider integrated
-- [ ] Form validation working
+- [x] NextAuth.js configured ✅
+- [x] Login/signup pages created ✅
+- [x] Protected routes configured ✅
+- [x] Session provider integrated ✅
+- [x] Form validation working ✅
+- [x] Password strength indicator ✅
+- [x] Forgot password & reset pages ✅
+- [x] Dashboard with role-based nav ✅
 
 **Phase 3 — Email & Password Reset:**
 - [ ] Email service configured
@@ -617,7 +620,59 @@ describe('POST /api/v1/auth/register', () => {
 - JWT stored client-side in HttpOnly cookies (secure)
 - CORS configured for frontend origin only
 
-**Next: Phase 2 - Frontend Auth Setup**
+**Phase 2 Completion (Feb 10):**
+- ✅ NextAuth.js v5 configured with JWT strategy
+  - Credentials provider for email/password
+  - JWT callbacks for session and token management
+  - Redirect callbacks for auth flow
+  - Session strategy: JWT (7-day expiry)
+
+- ✅ Authentication Pages (all with full form validation):
+  - Login page (/auth/login) - Email/password form with error handling
+  - Signup page (/auth/signup) - Full name, email, password, role selection
+  - Forgot Password (/auth/forgot-password) - Email field for reset request
+  - Reset Password (/auth/reset-password) - Token validation, new password form
+
+- ✅ Form Components:
+  - FormField - Reusable input with error display
+  - PasswordStrength - Real-time password meter with requirements checklist
+  - Validation feedback and helper text
+
+- ✅ Protected Dashboard:
+  - Dashboard layout requiring authentication
+  - Role-based sidebar navigation (EMPRESARIO, CONTADOR, ADMIN)
+  - Dashboard page with role-specific content
+  - User info display and logout button
+
+- ✅ Custom Hooks:
+  - useSession - Get current session, user, signOut function
+  - useRequireAuth - Protect pages, check roles, redirect to login
+
+- ✅ Form Validation (Zod schemas):
+  - loginSchema - Email + password
+  - signupSchema - Email + name + password + role + confirmation
+  - forgotPasswordSchema - Email validation
+  - resetPasswordSchema - New password + confirmation
+  - changePasswordSchema - Current + new password + confirmation
+
+- ✅ Root Layout:
+  - SessionProvider wrapper
+  - Global CSS with Tailwind
+  - Accessibility styles (focus, scrollbar)
+  - Global font and box-sizing
+
+- ✅ Environment Setup:
+  - apps/web/.env.local with NEXTAUTH_URL and API_URL
+  - Global CSS file with Tailwind directives
+  - Type definitions for NextAuth session/user
+
+**Installed Dependencies (Phase 2):**
+- next-auth (NextAuth.js)
+- react-hook-form (Form state management)
+- zod (Type-safe validation)
+- @hookform/resolvers (Zod integration with RHF)
+
+**Next: Phase 3 - Email & Password Reset Integration**
 
 ---
 
