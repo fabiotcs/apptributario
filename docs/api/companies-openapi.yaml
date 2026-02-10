@@ -1,0 +1,705 @@
+openapi: 3.0.0
+info:
+  title: Agente Tributário - Company Management API
+  description: Company management endpoints for the Agente Tributário tax advisory platform
+  version: 1.0.0
+  contact:
+    name: Development Team
+    email: dev@agente-tributario.com
+
+servers:
+  - url: http://localhost:3001/api/v1
+    description: Development server
+  - url: https://api.agente-tributario.com/api/v1
+    description: Production server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token from authentication endpoint
+
+  schemas:
+    Company:
+      type: object
+      required:
+        - id
+        - name
+        - cnpj
+        - taxRegime
+        - status
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique company identifier
+        name:
+          type: string
+          description: Company name
+        cnpj:
+          type: string
+          pattern: '^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$'
+          description: Brazilian CNPJ (formatted as XX.XXX.XXX/XXXX-XX)
+        legalName:
+          type: string
+          nullable: true
+          description: Official legal name
+        industry:
+          type: string
+          nullable: true
+          description: Industry classification (TECH, RETAIL, MANUFACTURING, SERVICES)
+        description:
+          type: string
+          nullable: true
+          description: Business description
+        address:
+          type: string
+          nullable: true
+          description: Street address
+        city:
+          type: string
+          nullable: true
+          description: City name
+        state:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          nullable: true
+          description: State code (SP, RJ, MG, etc.)
+        zipCode:
+          type: string
+          nullable: true
+          description: ZIP/Postal code
+        phone:
+          type: string
+          nullable: true
+          description: Business phone number
+        email:
+          type: string
+          format: email
+          nullable: true
+          description: Business email
+        website:
+          type: string
+          format: uri
+          nullable: true
+          description: Company website URL
+        foundedYear:
+          type: integer
+          minimum: 1800
+          nullable: true
+          description: Year company was founded
+        employees:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Number of employees
+        revenue:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Annual revenue in cents (R$)
+        taxRegime:
+          type: string
+          enum:
+            - SIMPLES_NACIONAL
+            - LUCRO_PRESUMIDO
+            - LUCRO_REAL
+          description: Current tax regime
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - ARCHIVED
+          description: Company status
+        ownerId:
+          type: string
+          format: uuid
+          description: ID of the EMPRESARIO user who owns the company
+        createdAt:
+          type: string
+          format: date-time
+          description: Company creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update timestamp
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Soft delete timestamp (null if active)
+
+    CreateCompanyInput:
+      type: object
+      required:
+        - name
+        - cnpj
+        - taxRegime
+      properties:
+        name:
+          type: string
+          minLength: 3
+          description: Company name
+        cnpj:
+          type: string
+          pattern: '^\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}$'
+          description: Brazilian CNPJ
+        legalName:
+          type: string
+          description: Official legal name
+        industry:
+          type: string
+          description: Industry classification
+        description:
+          type: string
+          maxLength: 1000
+          description: Business description
+        address:
+          type: string
+          description: Street address
+        city:
+          type: string
+          description: City name
+        state:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          description: State code
+        zipCode:
+          type: string
+          description: ZIP code
+        phone:
+          type: string
+          description: Business phone
+        email:
+          type: string
+          format: email
+          description: Business email
+        website:
+          type: string
+          format: uri
+          description: Company website
+        foundedYear:
+          type: integer
+          minimum: 1800
+          description: Founded year
+        employees:
+          type: integer
+          minimum: 0
+          description: Employee count
+        revenue:
+          type: integer
+          minimum: 0
+          description: Annual revenue in cents
+        taxRegime:
+          type: string
+          enum:
+            - SIMPLES_NACIONAL
+            - LUCRO_PRESUMIDO
+            - LUCRO_REAL
+
+    UpdateCompanyInput:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+        legalName:
+          type: string
+        industry:
+          type: string
+        description:
+          type: string
+        address:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+          pattern: '^[A-Z]{2}$'
+        zipCode:
+          type: string
+        phone:
+          type: string
+        email:
+          type: string
+          format: email
+        website:
+          type: string
+          format: uri
+        foundedYear:
+          type: integer
+          minimum: 1800
+        employees:
+          type: integer
+          minimum: 0
+        revenue:
+          type: integer
+          minimum: 0
+        taxRegime:
+          type: string
+          enum:
+            - SIMPLES_NACIONAL
+            - LUCRO_PRESUMIDO
+            - LUCRO_REAL
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - INACTIVE
+            - ARCHIVED
+
+    CompanyListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        companies:
+          type: array
+          items:
+            $ref: '#/components/schemas/Company'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+            page:
+              type: integer
+            limit:
+              type: integer
+            pages:
+              type: integer
+
+    CompanyResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        company:
+          $ref: '#/components/schemas/Company'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          description: Error message
+        field:
+          type: string
+          nullable: true
+          description: Field that caused the error (validation errors)
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: Page number (1-indexed)
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: Items per page
+
+paths:
+  /companies:
+    post:
+      summary: Create a new company
+      description: Create a new company. Only EMPRESARIO and ADMIN roles can create companies.
+      operationId: createCompany
+      security:
+        - BearerAuth: []
+      tags:
+        - Companies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompanyInput'
+            examples:
+              success:
+                summary: Valid company creation
+                value:
+                  name: Tech Solutions Ltd
+                  cnpj: '11.222.333/0001-81'
+                  legalName: Tech Solutions Limited
+                  industry: TECH
+                  address: 'Rua das Flores, 123'
+                  city: São Paulo
+                  state: SP
+                  zipCode: '01310-100'
+                  email: contact@techsolutions.com
+                  website: 'https://techsolutions.com'
+                  foundedYear: 2015
+                  employees: 50
+                  revenue: 5000000
+                  taxRegime: SIMPLES_NACIONAL
+      responses:
+        '201':
+          description: Company created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '400':
+          description: Invalid input or CNPJ already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - valid JWT token required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - insufficient permissions (CONTADOR cannot create)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: List companies
+      description: |
+        List companies with pagination and filtering.
+
+        - EMPRESARIO users see only their own companies
+        - CONTADOR users see only companies they're assigned to
+        - ADMIN users see all companies
+      operationId: listCompanies
+      security:
+        - BearerAuth: []
+      tags:
+        - Companies
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-indexed)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: status
+          in: query
+          description: Filter by company status
+          schema:
+            type: string
+            enum:
+              - ACTIVE
+              - INACTIVE
+              - ARCHIVED
+        - name: industry
+          in: query
+          description: Filter by industry
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search by company name or CNPJ
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Companies list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /companies/{id}:
+    get:
+      summary: Get company details
+      description: Retrieve detailed information about a specific company. User must be the owner, an assigned accountant, or an admin.
+      operationId: getCompany
+      security:
+        - BearerAuth: []
+      tags:
+        - Companies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Company details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - no access to this company
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      summary: Update company
+      description: Update company information. Only the owner (EMPRESARIO) or ADMIN can update.
+      operationId: updateCompany
+      security:
+        - BearerAuth: []
+      tags:
+        - Companies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompanyInput'
+      responses:
+        '200':
+          description: Company updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyResponse'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - only owner or admin can update
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      summary: Delete company
+      description: Soft delete a company. Only the owner (EMPRESARIO) or ADMIN can delete.
+      operationId: deleteCompany
+      security:
+        - BearerAuth: []
+      tags:
+        - Companies
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Company deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - only owner or admin can delete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /companies/{id}/accountants:
+    post:
+      summary: Assign accountant to company
+      description: Assign a CONTADOR user to manage or advise on a company.
+      operationId: assignAccountant
+      security:
+        - BearerAuth: []
+      tags:
+        - Company Accountants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - accountantId
+                - role
+              properties:
+                accountantId:
+                  type: string
+                  format: uuid
+                  description: ID of CONTADOR user
+                role:
+                  type: string
+                  enum:
+                    - ADVISOR
+                    - MANAGER
+                  description: Accountant role
+      responses:
+        '201':
+          description: Accountant assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  assignment:
+                    type: object
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - only owner or admin can assign
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Company or accountant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      summary: List company accountants
+      description: Get all CONTADOR users assigned to a company.
+      operationId: listCompanyAccountants
+      security:
+        - BearerAuth: []
+      tags:
+        - Company Accountants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Company ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Accountants list retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  accountants:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        userId:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        email:
+                          type: string
+                        role:
+                          type: string
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Company not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+tags:
+  - name: Companies
+    description: Company management operations
+  - name: Company Accountants
+    description: Accountant assignment and management
