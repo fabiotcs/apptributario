@@ -2,7 +2,7 @@
  * Advisory API Routes Tests
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { AdvisoryService } from '@/services/AdvisoryService';
+import { AdvisoryService } from '@api/services/AdvisoryService';
 
 describe('Advisory API', () => {
   describe('POST /api/v1/advisory - Create advisory', () => {

@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
-import { rbacMiddleware } from '../middleware/rbac';
+import { requireRole } from '../middleware/rbac';
 import { AccountantService } from '../services/AccountantService';
 
 const router = Router();
@@ -12,7 +12,7 @@ router.use(authMiddleware);
  * POST /api/v1/accountants/profile
  * Create accountant profile (CONTADOR only)
  */
-router.post('/profile', rbacMiddleware(['CONTADOR']), async (req: Request, res: Response) => {
+router.post('/profile', requireRole(['CONTADOR']), async (req: Request, res: Response) => {
   try {
     const {
       licenseNumber,
@@ -228,7 +228,7 @@ router.patch('/:id/availability', async (req: Request, res: Response) => {
  * POST /api/v1/accountants/:id/assignments
  * Assign accountant to company
  */
-router.post('/:id/assignments', rbacMiddleware(['EMPRESARIO', 'ADMIN']), async (req: Request, res: Response) => {
+router.post('/:id/assignments', requireRole(['EMPRESARIO', 'ADMIN']), async (req: Request, res: Response) => {
   try {
     const { companyId, role } = req.body;
 
@@ -293,7 +293,7 @@ router.get('/:id/assignments', async (req: Request, res: Response) => {
  */
 router.patch(
   '/:id/assignments/:companyId',
-  rbacMiddleware(['EMPRESARIO', 'ADMIN']),
+  requireRole(['EMPRESARIO', 'ADMIN']),
   async (req: Request, res: Response) => {
     try {
       const { role } = req.body;
@@ -339,7 +339,7 @@ router.patch(
  */
 router.delete(
   '/:id/assignments/:companyId',
-  rbacMiddleware(['EMPRESARIO', 'ADMIN']),
+  requireRole(['EMPRESARIO', 'ADMIN']),
   async (req: Request, res: Response) => {
     try {
       await AccountantService.removeAssignment(

@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { authMiddleware, optionalAuth } from '@/middleware/auth';
-import { requireRole } from '@/middleware/rbac';
-import { AdvisoryService } from '@/services/AdvisoryService';
-import { asyncHandler } from '@/middleware/errorHandler';
+import { authMiddleware, optionalAuth } from '@api/middleware/auth';
+import { requireRole } from '@api/middleware/rbac';
+import { AdvisoryService } from '@api/services/AdvisoryService';
+import { asyncHandler } from '@api/middleware/errorHandler';
 
 const router = Router();
 

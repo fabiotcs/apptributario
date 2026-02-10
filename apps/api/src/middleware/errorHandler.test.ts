@@ -2,7 +2,7 @@
  * Error Handler Middleware Tests
  */
 import { describe, it, expect } from 'vitest';
-import { Errors, AppError } from '@/middleware/errorHandler';
+import { Errors, AppError } from '@api/middleware/errorHandler';
 
 describe('Error Handling', () => {
   describe('AppError class', () => {

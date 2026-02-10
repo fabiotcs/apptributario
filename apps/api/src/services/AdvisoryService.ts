@@ -1,4 +1,4 @@
-import { prisma } from '@/lib/prisma';
+import prisma from '@api/lib/db';
 
 /**
  * AdvisoryService - Advisory request and review management
