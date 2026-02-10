@@ -34,6 +34,7 @@ model User {
   accountantAssignments  CompanyAccountant[] @relation(name: "AccountantAssignments")
   assignmentsMade        CompanyAccountant[] @relation(name: "AssignmentsMade")
   accountantAuditLogs    AccountantAuditLog[] @relation(name: "AccountantAudits")
+  taxAnalysesReviewed    TaxAnalysis[] @relation(name: "TaxAnalysesReviewed")
 
   @@index([email])
   @@index([role])
@@ -85,6 +86,8 @@ model Company {
   referrals           Referral[]
   auditLogs           AuditLog[]
   accountants         CompanyAccountant[]
+  taxAnalyses         TaxAnalysis[] @relation(name: "TaxAnalyses")
+  taxFilings          TaxFiling[] @relation(name: "TaxFilings")
 
   @@index([ownerId])
   @@index([cnpj])
@@ -425,6 +428,159 @@ enum ReferralStatus {
   ACTIVE
   SUSPENDED
   EXPIRED
+}
+
+// ============================================================================
+// TAX ANALYSIS (Story 2.3)
+// ============================================================================
+
+model TaxAnalysis {
+  id              String         @id @default(cuid())
+  company         Company        @relation(name: "TaxAnalyses", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String
+
+  accountant      User?          @relation(name: "TaxAnalysesReviewed", fields: [accountantId], references: [id], onDelete: SetNull)
+  accountantId    String?
+
+  analysisType    AnalysisType   // QUARTERLY, ANNUAL, CUSTOM
+  quarter         Int?           // Q1-Q4 (1-4)
+  year            Int            // Tax year analyzed
+  status          AnalysisStatus @default(DRAFT) // DRAFT, COMPLETED, REVIEWED, ARCHIVED
+
+  // Analysis components
+  taxData         TaxData?       // Input financial data
+  comparison      TaxComparison? // Calculated comparisons
+  opportunities   TaxOpportunity[] // Tax savings opportunities
+
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@unique([companyId, analysisType, quarter, year])
+  @@index([companyId])
+  @@index([accountantId])
+  @@index([status])
+  @@index([year])
+}
+
+enum AnalysisType {
+  QUARTERLY
+  ANNUAL
+  CUSTOM
+}
+
+enum AnalysisStatus {
+  DRAFT
+  COMPLETED
+  REVIEWED
+  ARCHIVED
+}
+
+model TaxData {
+  id                String       @id @default(cuid())
+  analysis          TaxAnalysis  @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysisId        String       @unique
+
+  grossRevenue      BigInt       // in centavos (R$ * 100)
+  deductions        Json?        // {category: amount} breakdown
+  expenses          Json?        // {category: amount} breakdown
+  taxCredits        Json?        // {type: amount} available credits
+
+  previousPayments  BigInt       @default(0) // Estimated taxes already paid
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([analysisId])
+}
+
+model TaxComparison {
+  id                String       @id @default(cuid())
+  analysis          TaxAnalysis  @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysisId        String       @unique
+
+  // Tax regime calculations
+  simplasNacional   Json         // {taxRate, taxLiability, monthlyPayment, advantages, disadvantages}
+  lucroPresumido    Json         // Same structure
+  lucroReal         Json         // Same structure
+
+  recommendedRegime RegimeType   // SIMPLES, PRESUMIDO, REAL
+  estimatedSavings  BigInt       // Annual savings vs current regime (in centavos)
+
+  analysisDetails   Json?        // Detailed calculations and reasoning
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([analysisId])
+}
+
+model TaxOpportunity {
+  id                String       @id @default(cuid())
+  analysis          TaxAnalysis  @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  analysisId        String
+
+  category          OpportunityCategory // DEDUCTION, CREDIT, TIMING, EXPENSE_OPTIMIZATION
+  opportunity       String       @db.Text // Description
+  estimatedValue    BigInt       // Potential tax savings (in centavos)
+  riskLevel         RiskLevel    // LOW, MEDIUM, HIGH
+  implementation    String       @db.Text // How to implement
+
+  createdAt         DateTime     @default(now())
+
+  @@index([analysisId])
+  @@index([category])
+}
+
+enum OpportunityCategory {
+  DEDUCTION
+  CREDIT
+  TIMING
+  EXPENSE_OPTIMIZATION
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model TaxFiling {
+  id                String       @id @default(cuid())
+  company           Company      @relation(name: "TaxFilings", fields: [companyId], references: [id], onDelete: Cascade)
+  companyId         String
+
+  filingType        FilingType   // ECF, ETR, DARF, ANNUAL_RETURN
+  quarter           Int?         // Q1-Q4 for quarterly filings
+  year              Int
+
+  dueDate           DateTime
+  status            FilingStatus @default(PENDING) // PENDING, FILED, OVERDUE, EXEMPT
+  filedDate         DateTime?
+
+  notes             String?      @db.Text
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([companyId, filingType, quarter, year])
+  @@index([companyId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+enum FilingType {
+  ECF          // Escrituração Contábil Fiscal
+  ETR          // e-Lalur (Lucro Real)
+  DARF         // Federal tax payment receipt
+  ANNUAL_RETURN // Annual tax return
+  DECLARATION  // Annual declaration (if required)
+}
+
+enum FilingStatus {
+  PENDING
+  FILED
+  OVERDUE
+  EXEMPT
 }
 
 // ============================================================================

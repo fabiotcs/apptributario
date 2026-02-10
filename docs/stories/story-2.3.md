@@ -4,7 +4,7 @@
 **Story ID:** 2.3
 **Priority:** 🔴 CRITICAL — Enables marketplace revenue (advisory fees)
 **Assignee:** @dev (Dex)
-**Status:** 📝 Draft (Awaiting Approval)
+**Status:** 🔄 In Progress (Phase 1 - Backend Implementation)
 **Estimated:** 3-4 days (solo dev) | 2-3 days (2 devs)
 **Start Date:** Feb 17, 2026
 **Target Completion:** Feb 21, 2026
