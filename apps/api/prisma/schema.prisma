@@ -35,6 +35,7 @@ model User {
   assignmentsMade        CompanyAccountant[] @relation(name: "AssignmentsMade")
   accountantAuditLogs    AccountantAuditLog[] @relation(name: "AccountantAudits")
   taxAnalysesReviewed    TaxAnalysis[] @relation(name: "TaxAnalysesReviewed")
+  advisoryRequests       AdvisoryRequest[] @relation(name: "AdvisoryRequester")
 
   @@index([email])
   @@index([role])
@@ -88,6 +89,7 @@ model Company {
   accountants         CompanyAccountant[]
   taxAnalyses         TaxAnalysis[] @relation(name: "TaxAnalyses")
   taxFilings          TaxFiling[] @relation(name: "TaxFilings")
+  advisoryRequests    AdvisoryRequest[]
 
   @@index([ownerId])
   @@index([cnpj])
@@ -152,6 +154,8 @@ model AccountantProfile {
   profileImageUrl       String?
 
   auditLogs             AccountantAuditLog[]
+  advisoryRequests      AdvisoryRequest[]
+  advisoryReviews       AdvisoryReview[]
 
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
@@ -451,6 +455,7 @@ model TaxAnalysis {
   taxData         TaxData?       // Input financial data
   comparison      TaxComparison? // Calculated comparisons
   opportunities   TaxOpportunity[] // Tax savings opportunities
+  advisoryRequest AdvisoryRequest? // Advisory request for this analysis
 
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -581,6 +586,70 @@ enum FilingStatus {
   FILED
   OVERDUE
   EXEMPT
+}
+
+// ============================================================================
+// ADVISORY SERVICES
+// ============================================================================
+
+model AdvisoryRequest {
+  id              String              @id @default(cuid())
+  company         Company             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  companyId       String
+  analysis        TaxAnalysis?        @relation(fields: [analysisId], references: [id], onDelete: SetNull)
+  analysisId      String?
+  requestedBy     User                @relation("AdvisoryRequester", fields: [requestedById], references: [id])
+  requestedById   String
+  requestType     AdvisoryType
+  description     String?
+  status          AdvisoryStatus      @default(PENDING)
+  assignedAccountant AccountantProfile? @relation(fields: [assignedAccountantId], references: [id], onDelete: SetNull)
+  assignedAccountantId String?
+  assignedAt      DateTime?
+  review          AdvisoryReview?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  cancelledAt     DateTime?
+
+  @@unique([analysisId])
+  @@index([companyId])
+  @@index([status])
+  @@index([assignedAccountantId])
+  @@index([createdAt])
+}
+
+model AdvisoryReview {
+  id              String              @id @default(cuid())
+  advisory        AdvisoryRequest     @relation(fields: [advisoryId], references: [id], onDelete: Cascade)
+  advisoryId      String              @unique
+  reviewer        AccountantProfile   @relation(fields: [reviewerAccountantId], references: [id])
+  reviewerAccountantId String
+  notes           String
+  recommendations String[]
+  reviewStatus    ReviewStatus
+  reviewedAt      DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([advisoryId])
+  @@index([reviewerAccountantId])
+}
+
+enum AdvisoryType {
+  TAX_REVIEW
+  GENERAL_ADVISORY
+}
+
+enum AdvisoryStatus {
+  PENDING
+  ASSIGNED
+  REVIEWED
+  CANCELLED
+}
+
+enum ReviewStatus {
+  APPROVED
+  NEEDS_REVISION
+  REJECTED
 }
 
 // ============================================================================
