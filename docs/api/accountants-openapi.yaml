@@ -1,0 +1,935 @@
+openapi: 3.0.0
+info:
+  title: Agente Tributário - Accountant Management API
+  description: |
+    Complete API for managing accountant profiles, assignments, and audit trails.
+
+    **Authentication:** All endpoints require Bearer token authentication (JWT).
+
+    **RBAC Roles:**
+    - `CONTADOR` - Accountant/Tax professional (can create/manage own profile)
+    - `EMPRESARIO` - Business owner (can assign accountants to companies)
+    - `ADMIN` - Administrator (full access to all operations)
+  version: 1.0.0
+  contact:
+    name: Agente Tributário Support
+    email: support@agentetributario.com.br
+
+servers:
+  - url: https://api.agentetributario.com.br/api/v1
+    description: Production API
+  - url: http://localhost:3001/api/v1
+    description: Local Development
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from authentication endpoint
+
+  schemas:
+    Specialization:
+      type: string
+      enum:
+        - TAX
+        - PAYROLL
+        - COMPLIANCE
+        - ACCOUNTING
+        - ADVISORY
+      description: |
+        Professional specialization types:
+        - `TAX` - Income & corporate tax services
+        - `PAYROLL` - Payroll processing and management
+        - `COMPLIANCE` - Tax compliance and audits
+        - `ACCOUNTING` - General accounting services
+        - `ADVISORY` - Business advisory services
+
+    AssignmentRole:
+      type: string
+      enum:
+        - ADVISOR
+        - MANAGER
+      description: |
+        Role in company assignment:
+        - `ADVISOR` - Read-only advisory access
+        - `MANAGER` - Full management access
+
+    Certification:
+      type: object
+      required:
+        - name
+        - issuer
+        - expiryDate
+      properties:
+        name:
+          type: string
+          minLength: 1
+          example: CPA - Certified Public Accountant
+          description: Certification name
+        issuer:
+          type: string
+          minLength: 1
+          example: AICPA
+          description: Issuing organization
+        expiryDate:
+          type: string
+          format: date
+          example: "2026-12-31"
+          description: Certification expiry date (YYYY-MM-DD)
+
+    AccountantProfile:
+      type: object
+      required:
+        - id
+        - userId
+        - licenseNumber
+        - specializations
+        - yearsOfExperience
+        - email
+        - createdAt
+        - updatedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique accountant identifier
+        userId:
+          type: string
+          format: uuid
+          description: Reference to User account (CONTADOR role)
+        licenseNumber:
+          type: string
+          minLength: 5
+          maxLength: 50
+          example: CRC/SP-123456
+          description: Professional license number (unique)
+        specializations:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Specialization'
+          example:
+            - TAX
+            - PAYROLL
+          description: Array of specializations
+        bio:
+          type: string
+          maxLength: 1000
+          nullable: true
+          description: Professional biography
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          maximum: 70
+          example: 15
+          description: Years in profession
+        hourlyRate:
+          type: integer
+          minimum: 0
+          maximum: 999999999
+          nullable: true
+          example: 20000
+          description: Hourly rate in cents (R$). Example 20000 = R$ 200.00
+        email:
+          type: string
+          format: email
+          example: accountant@example.com
+          description: Professional email address
+        phone:
+          type: string
+          nullable: true
+          example: "(11) 98765-4321"
+          description: Contact phone number
+        website:
+          type: string
+          format: uri
+          nullable: true
+          example: https://accountant.com.br
+          description: Professional website URL
+        isAvailable:
+          type: boolean
+          default: true
+          description: Currently accepting new clients
+        maxClients:
+          type: integer
+          minimum: 1
+          maximum: 100
+          nullable: true
+          example: 25
+          description: Maximum number of companies to manage
+        currentClientCount:
+          type: integer
+          minimum: 0
+          default: 0
+          example: 12
+          description: Current number of active company assignments
+        certifications:
+          type: array
+          nullable: true
+          items:
+            $ref: '#/components/schemas/Certification'
+          description: Array of professional certifications
+        profileImageUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to profile image/photo
+        createdAt:
+          type: string
+          format: date-time
+          description: Profile creation timestamp
+        updatedAt:
+          type: string
+          format: date-time
+          description: Profile last update timestamp
+
+    CompanyAssignment:
+      type: object
+      required:
+        - id
+        - accountantId
+        - companyId
+        - role
+        - assignedAt
+        - assignedBy
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Assignment unique identifier
+        accountantId:
+          type: string
+          format: uuid
+          description: Assigned accountant ID
+        companyId:
+          type: string
+          format: uuid
+          description: Company ID
+        company:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            cnpj:
+              type: string
+          description: Company details (included in GET /assignments)
+        role:
+          $ref: '#/components/schemas/AssignmentRole'
+        notes:
+          type: string
+          maxLength: 500
+          nullable: true
+          description: Assignment notes
+        assignedAt:
+          type: string
+          format: date-time
+          description: When assignment was created
+        assignedBy:
+          type: string
+          format: uuid
+          description: User ID who made the assignment
+        endedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: When assignment was ended (soft delete)
+
+    AuditLogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        accountantId:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum:
+            - ASSIGNED
+            - REMOVED
+            - PROFILE_UPDATED
+            - AVAILABILITY_CHANGED
+            - REASSIGNED
+          description: Action type
+        companyId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Company ID (null for profile changes)
+        performedBy:
+          type: string
+          format: uuid
+          description: User ID who performed the action
+        changes:
+          type: object
+          nullable: true
+          description: |
+            Changes made (for PROFILE_UPDATED). Format:
+            ```
+            {
+              "field": { "before": value, "after": value },
+              ...
+            }
+            ```
+        createdAt:
+          type: string
+          format: date-time
+          description: When action occurred
+
+    Error:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Failed to create accountant profile
+
+    PaginatedResponse:
+      type: object
+      required:
+        - success
+        - accountants
+        - pagination
+      properties:
+        success:
+          type: boolean
+          example: true
+        accountants:
+          type: array
+          items:
+            $ref: '#/components/schemas/AccountantProfile'
+        pagination:
+          type: object
+          properties:
+            total:
+              type: integer
+              example: 47
+            page:
+              type: integer
+              example: 1
+            limit:
+              type: integer
+              example: 20
+            pages:
+              type: integer
+              example: 3
+
+security:
+  - bearerAuth: []
+
+paths:
+  /accountants:
+    get:
+      summary: List accountants with pagination and filtering
+      description: |
+        Retrieve a paginated list of accountants with support for filtering and searching.
+
+        **RBAC:**
+        - `EMPRESARIO` - Sees available accountants only
+        - `CONTADOR` - Sees own profile
+        - `ADMIN` - Sees all accountants
+      operationId: listAccountants
+      tags:
+        - Accountants
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          description: Number of results per page
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by accountant name, license, or email
+        - name: specialization
+          in: query
+          schema:
+            $ref: '#/components/schemas/Specialization'
+          description: Filter by specialization
+        - name: isAvailable
+          in: query
+          schema:
+            type: boolean
+          description: Filter by availability status
+        - name: yearsOfExperience
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          description: Filter by minimum years of experience
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponse'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/search:
+    post:
+      summary: Advanced search for accountants
+      description: |
+        Search accountants with multiple filter criteria.
+      operationId: searchAccountants
+      tags:
+        - Accountants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  minLength: 1
+                  example: tax specialist
+                  description: Search query (name, license, email)
+                specializations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Specialization'
+                  description: Filter by specializations
+                minExperience:
+                  type: integer
+                  minimum: 0
+                  description: Minimum years of experience
+                available:
+                  type: boolean
+                  description: Filter by availability
+                maxHourlyRate:
+                  type: integer
+                  minimum: 0
+                  description: Maximum hourly rate in cents
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  accountants:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AccountantProfile'
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/profile:
+    post:
+      summary: Create new accountant profile
+      description: |
+        Create a new accountant profile. Only CONTADOR users can create profiles.
+
+        **RBAC:** `CONTADOR` only
+      operationId: createAccountantProfile
+      tags:
+        - Accountants
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - licenseNumber
+                - specializations
+                - yearsOfExperience
+                - email
+              properties:
+                licenseNumber:
+                  type: string
+                  minLength: 5
+                  maxLength: 50
+                  example: CRC/SP-123456
+                specializations:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/Specialization'
+                yearsOfExperience:
+                  type: integer
+                  minimum: 0
+                  maximum: 70
+                email:
+                  type: string
+                  format: email
+                bio:
+                  type: string
+                  maxLength: 1000
+                hourlyRate:
+                  type: integer
+                  minimum: 0
+                phone:
+                  type: string
+                website:
+                  type: string
+                  format: uri
+                maxClients:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                certifications:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Certification'
+                profileImageUrl:
+                  type: string
+                  format: uri
+      responses:
+        '201':
+          description: Profile created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  profile:
+                    $ref: '#/components/schemas/AccountantProfile'
+        '400':
+          description: Validation error (duplicate license, invalid fields)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized (must be CONTADOR)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/{id}:
+    get:
+      summary: Get accountant profile details
+      description: |
+        Retrieve complete accountant profile information including certifications,
+        assignments, and audit trail.
+      operationId: getAccountantProfile
+      tags:
+        - Accountants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Accountant ID
+      responses:
+        '200':
+          description: Profile found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  profile:
+                    $ref: '#/components/schemas/AccountantProfile'
+        '404':
+          description: Accountant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/{id}/profile:
+    patch:
+      summary: Update accountant profile
+      description: |
+        Update accountant profile fields. Supports partial updates.
+
+        **RBAC:** Owner or ADMIN only
+      operationId: updateAccountantProfile
+      tags:
+        - Accountants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  type: string
+                  maxLength: 1000
+                specializations:
+                  type: array
+                  minItems: 1
+                  items:
+                    $ref: '#/components/schemas/Specialization'
+                yearsOfExperience:
+                  type: integer
+                  minimum: 0
+                  maximum: 70
+                hourlyRate:
+                  type: integer
+                  minimum: 0
+                phone:
+                  type: string
+                website:
+                  type: string
+                  format: uri
+                maxClients:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                certifications:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Certification'
+                profileImageUrl:
+                  type: string
+                  format: uri
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  profile:
+                    $ref: '#/components/schemas/AccountantProfile'
+        '403':
+          description: Forbidden (not owner or admin)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Accountant not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/{id}/availability:
+    patch:
+      summary: Update availability status
+      description: |
+        Toggle accountant availability status (available/not available).
+
+        **RBAC:** Owner or ADMIN only
+      operationId: updateAccountantAvailability
+      tags:
+        - Accountants
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - isAvailable
+              properties:
+                isAvailable:
+                  type: boolean
+                  description: New availability status
+      responses:
+        '200':
+          description: Availability updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  profile:
+                    $ref: '#/components/schemas/AccountantProfile'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/{id}/assignments:
+    post:
+      summary: Assign accountant to company
+      description: |
+        Assign an accountant to manage a company with specified role.
+        Validates accountant availability and client capacity.
+
+        **RBAC:** `EMPRESARIO` or `ADMIN` only
+      operationId: assignAccountantToCompany
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Accountant ID
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - companyId
+                - role
+              properties:
+                companyId:
+                  type: string
+                  format: uuid
+                role:
+                  $ref: '#/components/schemas/AssignmentRole'
+                notes:
+                  type: string
+                  maxLength: 500
+      responses:
+        '201':
+          description: Assignment created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  assignment:
+                    $ref: '#/components/schemas/CompanyAssignment'
+        '400':
+          description: Bad request (accountant unavailable, at capacity, or already assigned)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Forbidden (must be EMPRESARIO or ADMIN)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Get assigned companies
+      description: |
+        Retrieve all companies the accountant is assigned to.
+      operationId: getAccountantAssignments
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Assignments retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  assignments:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CompanyAssignment'
+
+  /accountants/{id}/assignments/{companyId}:
+    patch:
+      summary: Update assignment role
+      description: |
+        Change the role for an accountant-company assignment (ADVISOR ↔ MANAGER).
+
+        **RBAC:** `EMPRESARIO` or `ADMIN` only
+      operationId: updateAssignmentRole
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - role
+              properties:
+                role:
+                  $ref: '#/components/schemas/AssignmentRole'
+      responses:
+        '200':
+          description: Role updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  assignment:
+                    $ref: '#/components/schemas/CompanyAssignment'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Remove assignment
+      description: |
+        Remove accountant assignment from company (soft delete via endedAt).
+
+        **RBAC:** `EMPRESARIO` or `ADMIN` only
+      operationId: removeAccountantAssignment
+      tags:
+        - Assignments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: companyId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Assignment removed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                    example: Assignment removed successfully
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accountants/{id}/audit-log:
+    get:
+      summary: Get accountant audit trail
+      description: |
+        Retrieve complete audit log of all changes made to accountant profile
+        and assignments.
+      operationId: getAccountantAuditLog
+      tags:
+        - Audit
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Audit log retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  auditLog:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AuditLogEntry'
+
+tags:
+  - name: Accountants
+    description: Accountant profile management endpoints
+  - name: Assignments
+    description: Company assignment management endpoints
+  - name: Audit
+    description: Audit trail endpoints
