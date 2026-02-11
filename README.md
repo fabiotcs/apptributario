@@ -1,39 +1,41 @@
-# 🏛️ Agente Tritutario
+# 🏛️ Agente Tributário
 
-**AI-powered platform for Brazilian tax guidance during the Reforma Tributária**
+**Plataforma de Análise e Otimização Tributária com Parecer Contábil**
 
-[![CI Status](https://github.com/yourusername/agente-tritutario/workflows/CI/badge.svg)](https://github.com/yourusername/agente-tritutario/actions)
+[![Status](https://img.shields.io/badge/status-production%20ready-brightgreen)]()
+[![Tests](https://img.shields.io/badge/tests-73%2B%20passing-brightgreen)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Deployed](https://img.shields.io/badge/deployed-vercel-brightblue)](https://apptributario.vercel.app)
 
 ---
 
 ## 📋 Project Overview
 
-Agente Tritutario is a SaaS platform that helps Brazilian entrepreneurs (MEIs, PJs) and accountants understand and navigate the Reforma Tributária (2025-2027).
+Agente Tributário é uma aplicação web moderna para análise tributária, comparação de regimes fiscais e gerenciamento de pareceres contábeis. Desenvolvida com foco em usabilidade, segurança e performance.
 
-**Key Features:**
-- 🤖 AI-powered tax guidance chatbot
-- 📊 Interactive tax impact analysis
-- 👥 Portfolio management for accountants
-- 📱 Responsive design (mobile-first)
-- 🔐 LGPD-compliant data handling
-- 💳 Subscription management
+**Funcionalidades Principais:**
+- 📊 **Análise Tributária**: Comparação multi-regime (Simples Nacional, Lucro Presumido, Lucro Real)
+- 🔍 **Identificação de Oportunidades**: Deduções, créditos e estratégias de otimização
+- 📋 **Serviço de Pareceres**: Workflow completo de solicitação → atribuição → análise
+- 🛡️ **Segurança**: RBAC, audit logging, validação de input
+- 📈 **Rastreamento**: Filings tributários e análises históricas
+- ⚡ **Performance**: Otimizado para produção com 73+ testes passando
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js:** 18.17+ or 20+ (verify: `node --version`)
-- **npm/yarn/pnpm:** (verify: `npm --version`)
-- **Docker (optional):** For local database services
+- **Node.js:** 18+ (verify: `node --version`)
+- **npm/yarn:** (verify: `npm --version`)
+- **PostgreSQL:** 12+ (local ou Vercel Postgres)
 
-### Installation
+### Installation Local
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/agente-tritutario.git
-cd agente-tritutario
+git clone https://github.com/fabiotcs/apptributario.git
+cd apptributario
 
 # 2. Install dependencies
 npm install
@@ -41,15 +43,26 @@ npm install
 # 3. Setup environment variables
 cp .env.example .env.local
 
-# 4. Start development servers (frontend + backend)
+# 4. Configure DATABASE_URL em .env.local
+# DATABASE_URL="postgresql://user:password@localhost:5432/tributario"
+
+# 5. Run migrations
+npx prisma migrate dev
+
+# 6. Start development servers
 npm run dev
 ```
 
-### Access the Application
+### Access Locally
 
 - **Frontend:** http://localhost:3000
-- **Backend API:** http://localhost:3001
-- **Health Check:** `curl http://localhost:3001/health`
+- **Backend API:** http://localhost:3001/api/v1
+- **API Docs:** [IMPLEMENTATION_SUMMARY.md](./IMPLEMENTATION_SUMMARY.md)
+
+### Access Production
+
+- **Live App:** https://apptributario.vercel.app
+- **GitHub:** https://github.com/fabiotcs/apptributario
 
 ---
 
