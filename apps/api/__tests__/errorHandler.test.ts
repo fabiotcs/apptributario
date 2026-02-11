@@ -1,7 +1,7 @@
 /**
  * Error Handler Middleware Tests
  */
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect } from '@jest/globals';
 import { Errors, AppError } from '@api/middleware/errorHandler';
 
 describe('Error Handling', () => {
