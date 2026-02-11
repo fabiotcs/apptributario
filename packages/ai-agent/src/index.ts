@@ -38,7 +38,7 @@ export interface AIAgentService {
 }
 
 export class AIAgentStub implements AIAgentService {
-  async chat(message: string, conversationId: string): Promise<AgentResponse> {
+  async chat(_message: string, _conversationId: string): Promise<AgentResponse> {
     // Stub implementation
     return {
       content: 'This is a placeholder response. AI agent implementation pending.',
@@ -46,7 +46,7 @@ export class AIAgentStub implements AIAgentService {
     };
   }
 
-  async getContext(topic: string): Promise<Record<string, unknown>> {
+  async getContext(_topic: string): Promise<Record<string, unknown>> {
     // Stub implementation
     return {};
   }

@@ -29,12 +29,12 @@ export interface RAGService {
 }
 
 export class RAGStub implements RAGService {
-  async search(query: RAGQuery): Promise<VectorSearchResult[]> {
+  async search(_query: RAGQuery): Promise<VectorSearchResult[]> {
     // Stub implementation
     return [];
   }
 
-  async upsert(id: string, content: string, metadata?: Record<string, unknown>): Promise<void> {
+  async upsert(_id: string, _content: string, _metadata?: Record<string, unknown>): Promise<void> {
     // Stub implementation
   }
 }

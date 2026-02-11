@@ -36,9 +36,9 @@ describe('formatters', () => {
 
   describe('formatDate', () => {
     it('should format date in pt-BR locale', () => {
-      const date = new Date('2026-02-09');
+      const date = new Date('2026-02-09T12:00:00Z');
       const result = formatDate(date);
-      expect(result).toContain('9');
+      expect(result).toContain('fevereiro');
       expect(result).toContain('2026');
     });
   });

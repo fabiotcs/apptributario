@@ -2,6 +2,7 @@
   "name": "agente-tritutario",
   "version": "0.1.0",
   "description": "IA-powered platform for Brazilian tax guidance (Reforma Tributária)",
+  "packageManager": "npm@10.0.0",
   "private": true,
   "workspaces": [
     "apps/*",
