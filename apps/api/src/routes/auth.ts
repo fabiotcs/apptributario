@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import rateLimit from 'express-rate-limit';
+import prisma from '../lib/db';
 import { AuthService } from '../services/AuthService';
 import { authMiddleware } from '../middleware/auth';
 
@@ -183,12 +184,28 @@ router.get('/session', authMiddleware, async (req: Request, res: Response) => {
  * Logout user (client-side clearing of tokens)
  * This endpoint is primarily for audit logging
  */
-router.post('/logout', authMiddleware, async (_req: Request, res: Response) => {
+router.post('/logout', authMiddleware, async (req: Request, res: Response) => {
   try {
     // In a stateless JWT system, logout is handled by client clearing tokens
-    // This endpoint can be used for audit logging, blacklist management, etc.
+    // This endpoint is used for audit logging and security tracking
 
-    // TODO: Add audit log entry for logout
+    const userId = (req as any).user?.id;
+    const userAgent = req.get('user-agent');
+    const ipAddress = req.ip;
+
+    // Log logout event for security audit trail
+    if (userId) {
+      await prisma.auditLog.create({
+        data: {
+          userId,
+          action: 'LOGOUT',
+          resource: 'User',
+          resourceId: userId,
+          ipAddress,
+          userAgent,
+        },
+      });
+    }
 
     return res.status(200).json({
       success: true,
